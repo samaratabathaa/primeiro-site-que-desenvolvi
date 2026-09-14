@@ -1,0 +1,214 @@
+import * as React from 'react';
+import {
+  Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+  ImageList,
+  ImageListItem,
+  ImageListItemBar,
+  Typography,
+  Rating,
+} from '@mui/material';
+import InfoIcon from '@mui/icons-material/Info';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+
+export default function TitlebarImageList() {
+  const [favorites, setFavorites] = React.useState([]);
+  const [selectedItem, setSelectedItem] = React.useState(null);
+  const [zoomedImage, setZoomedImage] = React.useState(null);
+  const [ratings, setRatings] = React.useState(
+    itemData.reduce((acc, item) => ({ ...acc, [item.title]: 2.5 }), {}) // Inicializando as avaliações com 2.5
+  );
+
+  const toggleFavorite = (title) => {
+    setFavorites((prev) =>
+      prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]
+    );
+  };
+
+  const handleRatingChange = (title, newValue) => {
+    setRatings((prev) => ({
+      ...prev,
+      [title]: newValue,
+    }));
+  };
+
+  // Calcular a porcentagem de favoritos com base nos pratos favoritados
+  const percentualFavoritos = Math.round((favorites.length / itemData.length) * 100);
+  const totalFavoritos = favorites.length;
+
+  const handleImageClick = (img) => {
+    setZoomedImage(img); // Abrir a imagem em tamanho maior
+  };
+
+  const handleCloseZoom = () => {
+    setZoomedImage(null); // Fechar a imagem ampliada
+  };
+
+  return (
+    <Box display="flex" flexDirection="column" alignItems="center" mt={4}>
+      <Typography variant="h6" gutterBottom>
+        Achei {totalFavoritos} interessante{totalFavoritos !== 1 ? 's' : ''}.
+      </Typography>
+
+      <Typography variant="body2" gutterBottom>
+        Você favoritou {percentualFavoritos}% dos pratos!
+      </Typography>
+
+      <ImageList sx={{ width: 600, height: 600 }}>
+        <ImageListItem key="Subheader" cols={2}>
+          <Box display="flex" alignItems="center" gap={2} p={1}>
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/2/21/Flag_of_Colombia.svg"
+              alt="Bandeira da Colômbia"
+              width={40}
+              height={30}
+              style={{ objectFit: 'cover', borderRadius: '4px' }}
+            />
+            <Typography variant="h6" component="div">
+              COLÔMBIA
+            </Typography>
+          </Box>
+        </ImageListItem>
+
+        {itemData.map((item) => (
+          <ImageListItem key={item.img} cols={item.cols || 1}>
+            <img
+              srcSet={`${item.img}?w=248&fit=crop&auto=format&dpr=2 2x`}
+              src={`${item.img}?w=248&fit=crop&auto=format`}
+              alt={item.title}
+              loading="lazy"
+              onClick={() => handleImageClick(item.img)} // Ao clicar, mostrar imagem ampliada
+              style={{ cursor: 'pointer' }} // Cursor em forma de mão para indicar interatividade
+            />
+            <ImageListItemBar
+              title={
+                <Box>
+                  <Typography variant="subtitle1" color="inherit">
+                    {item.title}
+                  </Typography>
+                  <Rating
+                    name={`rating-${item.title}`}
+                    value={ratings[item.title] || 2.5}
+                    onChange={(event, newValue) => handleRatingChange(item.title, newValue)}
+                    precision={0.5}
+                    size="small"
+                  />
+                </Box>
+              }
+              subtitle={item.author}
+              actionIcon={
+                <Box display="flex">
+                  <IconButton
+                    onClick={() => toggleFavorite(item.title)}
+                    sx={{ color: favorites.includes(item.title) ? 'red' : 'white' }}
+                    aria-label={`favorite ${item.title}`}
+                  >
+                    {favorites.includes(item.title) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                  </IconButton>
+                  <IconButton
+                    sx={{ color: 'rgba(255, 255, 255, 0.8)' }}
+                    aria-label={`info about ${item.title}`}
+                    onClick={() => setSelectedItem(item)}
+                  >
+                    <InfoIcon />
+                  </IconButton>
+                </Box>
+              }
+            />
+          </ImageListItem>
+        ))}
+      </ImageList>
+
+      {/* Dialog de Zoom da Imagem */}
+      <Dialog open={!!zoomedImage} onClose={handleCloseZoom} maxWidth="lg">
+        <DialogTitle></DialogTitle>
+        <DialogContent>
+          <img
+            src={zoomedImage}
+            alt="Imagem ampliada"
+            style={{ width: '100%', height: 'auto' }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!selectedItem} onClose={() => setSelectedItem(null)}>
+        <DialogTitle>{selectedItem?.title}</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1">
+            {selectedItem?.preparo || 'Modo de preparo indisponível.'}
+          </Typography>
+        </DialogContent>
+      </Dialog>
+    </Box>
+  );
+}
+
+const itemData = [
+  {
+    img: 'https://pt.petitchef.com/imgupl/recipe/como-fazer-a-bandeja-paisa-um-prato-tipico-colombiano--md-466973p744542.jpg',
+    title: 'Bandeja Paisa',
+    author: '',
+    preparo: 'Arroz, feijão vermelho, carne moída, chouriço, ovo frito, abacate e banana-da-terra compõem este prato típico colombiano. A Bandeja Paisa é uma refeição rica em sabores e contrastes, que reflete a generosidade e a tradição da culinária.',
+  },
+  {
+    img: 'https://www.recetasnestle.com.ec/sites/default/files/styles/recipe_detail_desktop_new/public/srh_recipes/3964b77d9ff84585e562ad1bd1205e25.jpg?itok=-DtS_lDa',
+    title: 'Ajiaco',
+    author: '',
+    preparo: 'Clássico da região de Bogotá, o Ajiaco é uma sopa espessa e aromática feita com três tipos de batata, frango desfiado, milho e o toque especial das ervas locais. Rico em sabor e história, é servido com alcaparras, creme de leite e abacate, compondo um prato reconfortante e culturalmente emblemático.',
+  },
+  {
+    img: 'https://www.laylita.com/recetas/wp-content/uploads/2022/08/Arepas-colombianas-de-queso.jpg',
+    title: 'Arepas',
+    author: '',
+    preparo: 'As arepas são pequenas delícias douradas feitas à base de farinha de milho, consumidas em todo o país das mais variadas formas. Crocantes por fora e macias por dentro, podem ser simples ou recheadas, servidas no café da manhã, como acompanhamento ou prato principal.',
+  },
+  {
+    img: 'https://media-cdn.tripadvisor.com/media/photo-s/14/01/f8/6d/lechona-bogota.jpg',
+    title: 'Lechona',
+    author: '',
+    cols: 1,
+    preparo: 'A Lechona Tolimense é um dos pratos mais emblemáticos da Colômbia, especialmente da região do Tolima, onde é símbolo de festas, celebrações e datas especiais. É basicamente um porco inteiro assado, recheado com arroz temperado, ervilhas, especiarias e, às vezes, pedaços da própria carne suína. O resultado é uma combinação crocante por fora e extremamente suculenta e aromática por dentro.',
+  },
+  {
+    img: 'https://www.recetasnestle.com.co/sites/default/files/srh_recipes/8715c4211c37a28940d8a3eee287fe0a.jpg',
+    title: 'Posta Negra Cartagenera',
+    author: '',
+    cols: 1,
+    preparo: 'A Posta Negra Cartagenera é um prato típico da cidade de Cartagena, na Colômbia. Trata-se de um corte de carne (geralmente lagarto ou contra-filé) cozido lentamente em uma mistura rica de especiarias, panela (açúcar mascavo colombiano), cebola, alho e cerveja preta ou cola, resultando em uma carne macia, escura e extremamente saborosa. É servida com arroz de coco, patacones (banana-da-terra frita) ou salada.',
+  },
+  {
+    img: 'https://comedera.com/wp-content/uploads/sites/9/2023/09/Cazuela-de-mariscos-shutterstock_1836014740.jpg',
+    title: 'Cazuela de Mariscos',
+    author: '',
+    preparo: 'Cazuela de Mariscos é um prato típico das regiões costeiras da Colômbia, como Cartagena e Barranquilla. Trata-se de um ensopado cremoso e aromático de frutos do mar, preparado com leite de coco, pimentões, alho, cebola e condimentos locais. É servido bem quente, geralmente em cumbucas de barro, e acompanhado de arroz branco, patacones ou pão.',
+  },
+  {
+    img: 'https://www.allrecipes.com/thmb/-JY0RG0QCxprIfIdD-wkA8iU7O0=/0x512/filters:no_upscale():max_bytes(150000):strip_icc()/AR-257186-puerto-rican-sancocho-DDMFS-4x3-beauty-4a9bec564c8f45a1899b79e16d8c8db8.jpg',
+    title: 'Sancocho',
+    author: '',
+    preparo: 'O Sancocho começa com um bom refogado de alho, cebola e pimentão. Acrescenta-se a carne e, depois de dourar, adiciona-se água, mandioca, batatas, milho e plátano. Cozinha-se lentamente até os ingredientes estarem macios e o caldo encorpado.',
+  },
+  {
+    img: 'https://cocinamia.com.mx/wp-content/uploads/2021/05/Mesa-de-trabajo-1-copia-2-100-1100x500.jpg',
+    title: 'Empanadas Colombianas',
+    author: '',
+    preparo: 'Pastéis fritos de massa de milho recheados com carne, batata e temperos. Geralmente servidas com ají (molho picante). Recheie a massa de milho com carne moída e batatas temperadas. Modele em meia-lua e frite até dourar.',
+  },
+  {
+    img: 'https://amopaocaseiro.com.br/wp-content/uploads/2024/05/yt113_pandebono_receita_02.jpg',
+    title: 'Pandebono',
+    author: '',
+    preparo: 'Pãozinho de queijo colombiano, feito com polvilho, queijo e ovo. Macio por dentro e com leve crocância por fora, é típico no café da manhã. Misture polvilho azedo, queijo fresco ralado, ovo e um pouco de leite. Modele pequenas bolinhas e asse até dourar.',
+  },    
+  {
+    img: 'https://www.paulinacocina.net/wp-content/uploads/2024/07/arroz-atollado-800x633-1200x950.jpg',
+    title: 'Arroz Atollado',
+    author: '',
+    preparo: 'Um arroz cremoso, parecido com risoto, típico do Valle del Cauca. Leva frango, porco, legumes e condimentos. Prepare um refogado com cebola, alho e tomate. Adicione as carnes e deixe cozinhar. Depois, coloque arroz, caldo e deixe cozinhar até o arroz ficar cremoso.',
+  },
+ 
+];
